@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] — 2026-04-19
+
+*Release-infrastructure pass. First push of `@caravela/svelte` to
+the npm registry, plus the CI plumbing so future `v*.*.*` tags
+publish to both Hex and npm in one step.*
+
+### Added
+
+- **npm publish job** in [.github/workflows/release.yml](.github/workflows/release.yml).
+  The release workflow now runs two parallel jobs on every
+  `v*.*.*` tag: `publish-hex` (unchanged) and `publish-npm`,
+  which validates the tag against `package.json`'s `version`
+  field and runs `npm publish --access public --provenance`.
+  Auth is via an `NPM_TOKEN` repo secret (granular access token
+  with bypass-2FA-for-publishing).
+
+### Fixed
+
+- **`files` glob in [package.json](package.json) was single-level**
+  (`assets/js/caravela_svelte/*`) and would have shipped a tarball
+  with the top-level sources only — the `./rest` subpath export
+  would resolve to a missing directory once installed. Replaced
+  with `assets/js/caravela_svelte/**/*` plus an explicit
+  `!**/*.test.ts` exclusion so the tarball stays free of vitest
+  files.
+
 ## [0.1.1] — 2026-04-19
 
 *First-run-friction pass driven by [bug_improvements_3.md](https://github.com/rsousacode/caravela-plan/blob/main/reviews/bug_improvements_3.md)

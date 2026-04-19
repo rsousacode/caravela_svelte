@@ -1,6 +1,6 @@
 {
     "name": "@caravela/svelte",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "type": "module",
     "description": "Svelte + Phoenix with pluggable render modes (LiveView WebSocket or Inertia-style HTTP).",
     "license": "MIT",
@@ -33,6 +33,7 @@
         "LICENSE",
         "NOTICE.md",
         "package.json",
-        "assets/js/caravela_svelte/*"
+        "assets/js/caravela_svelte/**/*",
+        "!assets/js/caravela_svelte/**/*.test.ts"
     ]
 }

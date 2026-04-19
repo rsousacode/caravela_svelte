@@ -1,4 +1,4 @@
-name: Release to Hex
+name: Release
 
 on:
   push:
@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    name: Publish ${{ github.ref_name }}
+  publish-hex:
+    name: Publish ${{ github.ref_name }} to Hex
     runs-on: ubuntu-latest
     env:
       HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
@@ -57,3 +57,34 @@ jobs:
 
       - name: Publish to Hex
         run: mix hex.publish --yes
+
+  publish-npm:
+    name: Publish ${{ github.ref_name }} to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify tag matches package.json version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          TAG_VERSION="${TAG#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Git tag ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
