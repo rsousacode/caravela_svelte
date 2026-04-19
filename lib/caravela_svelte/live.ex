@@ -118,8 +118,12 @@ defmodule CaravelaSvelte.Live do
 
     payload =
       cond do
-        not use_diff -> props
-        init or dead -> props
+        not use_diff ->
+          props
+
+        init or dead ->
+          props
+
         is_map(assigns.__changed__[:props]) ->
           props_changed_only(props, assigns.__changed__[:props])
 

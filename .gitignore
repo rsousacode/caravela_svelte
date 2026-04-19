@@ -7,11 +7,14 @@
 erl_crash.dump
 *.ez
 caravela_svelte-*.tar
+/priv/plts/
 
 # Node / npm
 node_modules/
 npm-debug.log
 yarn-error.log
+coverage/
+.vitest-cache/
 
 # macOS
 .DS_Store

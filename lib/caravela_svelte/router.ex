@@ -48,7 +48,15 @@ defmodule CaravelaSvelte.Router do
   defmacro __using__(_opts) do
     quote do
       import Phoenix.LiveView.Router, only: [live: 2, live: 3, live: 4]
-      import CaravelaSvelte.Router, only: [caravela_live: 2, caravela_live: 3, caravela_live: 4, caravela_rest: 2, caravela_rest: 3]
+
+      import CaravelaSvelte.Router,
+        only: [
+          caravela_live: 2,
+          caravela_live: 3,
+          caravela_live: 4,
+          caravela_rest: 2,
+          caravela_rest: 3
+        ]
     end
   end
 
@@ -130,9 +138,7 @@ defmodule CaravelaSvelte.Router do
     private = {:%{}, [], [caravela_svelte_mode: :rest, caravela_svelte_role: :sse]}
 
     quote do
-      get(unquote(events_path), CaravelaSvelte.SSE, unquote(plug_opts),
-        private: unquote(private)
-      )
+      get(unquote(events_path), CaravelaSvelte.SSE, unquote(plug_opts), private: unquote(private))
     end
   end
 
@@ -141,7 +147,6 @@ defmodule CaravelaSvelte.Router do
   # expressions (rare — e.g. a module attribute).
   defp events_path_ast(path) when is_binary(path), do: path <> "/__events"
   defp events_path_ast(path_ast), do: quote(do: unquote(path_ast) <> "/__events")
-
 
   # Merges `private: %{caravela_svelte_mode: mode}` into the opts
   # keyword list without clobbering any existing `:private` entries.
