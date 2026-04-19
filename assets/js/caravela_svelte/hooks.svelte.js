@@ -3,6 +3,19 @@ import { mount, hydrate, unmount, createRawSnippet } from "svelte"
 import { applyPatch } from "./jsonPatch.js"
 import { LIVE_SYMBOL, CONNECTION_SYMBOL } from "./composables"
 
+// Adapt any of the three supported component inputs into a single
+// `(name) => Component | undefined` function. Keeps the hook body
+// oblivious to which loader shape the app chose. See `getHooks`
+// moduledoc for the three shapes.
+function asComponentResolver(components) {
+  if (components && typeof components.resolveComponent === "function") {
+    return components.resolveComponent
+  }
+
+  const normalized = normalizeComponents(components)
+  return (name) => normalized[name]
+}
+
 function getAttributeJson(ref, attributeName) {
   const data = ref.el.getAttribute(attributeName)
   return data ? JSON.parse(data) : {}
@@ -93,8 +106,24 @@ function update_state(ref) {
   }
 }
 
+/**
+ * Accepts three input shapes:
+ *
+ *   1. `{ [name]: Component }`          — pre-built map (passed through).
+ *   2. `{ default: [...], filenames: [...] }` — Vite `import.meta.glob`
+ *      shape (flattened via `normalizeComponents`).
+ *   3. `{ resolveComponent: (name) => Component }` — function resolver,
+ *      parallel to `initRest`'s signature. The resolver is called on
+ *      mount so apps that lazy-load components get the same pattern
+ *      on both runtimes.
+ *
+ * Before v0.1.1 only shapes 1 and 2 worked; shape 3 silently fell
+ * through and the first component mount threw "Unable to find <name>
+ * component." The resolver shape is now a first-class option so
+ * [docs/getting_started.md] can teach one pattern for both modes.
+ */
 export function getHooks(components) {
-  components = normalizeComponents(components)
+  const resolve = asComponentResolver(components)
 
   const CaravelaSvelteHook = {
     mounted() {
@@ -104,7 +133,7 @@ export function getHooks(components) {
       const componentName = this.el.getAttribute("data-name")
       if (!componentName) throw new Error("Component name must be provided")
 
-      const Component = components[componentName]
+      const Component = resolve(componentName)
       if (!Component) throw new Error(`Unable to find ${componentName} component.`)
 
       // Mount into the inner phx-update="ignore" div so LiveView's DOM

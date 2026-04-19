@@ -61,32 +61,45 @@ export default defineConfig({
 
 ### 4. Boot the client
 
+The Vite plugin shipped with caravela_svelte exposes a
+`virtual:live-svelte-components` module that flattens your
+`assets/svelte/**/*.svelte` tree into a component map. Pass it
+straight to `getHooks` for `:live` mode, and to `initRest` via a
+resolver for `:rest` mode:
+
 ```js
 // assets/js/app.js
 import { getHooks } from "@caravela/svelte"
 import { initRest } from "@caravela/svelte/rest"
+import Components from "virtual:live-svelte-components"
 import { LiveSocket } from "phoenix_live_view"
-
-const components = import.meta.glob("./svelte/**/*.svelte", {
-  eager: true,
-})
-
-const resolveComponent = (name) =>
-  components[`./svelte/${name}.svelte`]?.default
 
 // :live mode — LiveView hooks
 const liveSocket = new LiveSocket("/live", Socket, {
-  hooks: getHooks({ resolveComponent }),
+  hooks: getHooks(Components),
 })
 liveSocket.connect()
 
 // :rest mode — boots on data-mode="rest" pages; no-op otherwise.
-initRest({ resolveComponent })
+initRest({
+  resolveComponent: (name) => Components[name],
+})
 ```
 
 The single `app.js` handles both modes. `initRest()` checks the
 root element's `data-mode` attribute and only activates when the
 page was rendered in `:rest` mode.
+
+> **Alternative — `getHooks` also accepts a `{ resolveComponent }`
+> object** from v0.1.1 onward, mirroring `initRest`'s shape:
+>
+> ```js
+> const resolveComponent = (name) => Components[name]
+> hooks: getHooks({ resolveComponent })
+> ```
+>
+> Use whichever reads cleaner. `getHooks(Components)` is the
+> shortest spelling for apps that use the Vite virtual module.
 
 ### 5. Configure PubSub (required for SSE real-time only)
 

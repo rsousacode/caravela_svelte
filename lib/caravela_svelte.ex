@@ -2,14 +2,20 @@ defmodule CaravelaSvelte do
   @moduledoc """
   CaravelaSvelte — Svelte + Phoenix with pluggable render modes.
 
-  The `svelte/1` function component is the primary entry point; it
-  dispatches assign preparation to the configured
-  `CaravelaSvelte.Renderer` implementation (default
-  `CaravelaSvelte.Live`) and emits the HEEx output.
+  The `svelte/1` function component is the primary entry point for
+  `:live` mode (LiveView + WebSocket): it dispatches assign
+  preparation to the configured `CaravelaSvelte.Renderer`
+  implementation (default `CaravelaSvelte.Live`) and emits the HEEx
+  output.
 
-  Phase B.1 ships the `:live` renderer only. Phase B.2 adds
-  `CaravelaSvelte.Rest` (Inertia-style HTTP transport) and
-  `CaravelaSvelte.svelte/1` gains mode-aware dispatch.
+  For `:rest` mode (Inertia-style HTTP transport), call
+  `CaravelaSvelte.render/3,4` (a `defdelegate` over
+  `CaravelaSvelte.Rest.render/4`) from a Phoenix controller.
+
+  Both renderers share the same prop contract and Svelte component
+  tree — authors write `BookIndex.svelte` once and both transports
+  mount it. See `docs/render_modes.md` for how to pick between
+  them.
 
   This module is a fork of `live_svelte` by Wout De Puysseleir —
   see `NOTICE.md` for attribution.

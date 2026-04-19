@@ -159,13 +159,19 @@ defmodule Mix.Tasks.CaravelaSvelte.Install do
     end
 
     defp add_caravela_svelte_imports(content) do
-      if String.contains?(content, "import {getHooks} from \"caravela_svelte\"") do
+      # Match either the scoped (published) or unscoped (pre-0.1.1)
+      # import so a re-run after upgrade is a no-op.
+      already_imported? =
+        String.contains?(content, "from \"@caravela/svelte\"") or
+          String.contains?(content, "from \"caravela_svelte\"")
+
+      if already_imported? do
         content
       else
         String.replace(
           content,
           "import topbar from \"topbar\"",
-          ~s(import topbar from "topbar"\nimport {getHooks} from "caravela_svelte"\nimport Components from "virtual:live-svelte-components")
+          ~s(import topbar from "topbar"\nimport { getHooks } from "@caravela/svelte"\nimport Components from "virtual:live-svelte-components")
         )
       end
     end
@@ -225,7 +231,7 @@ defmodule Mix.Tasks.CaravelaSvelte.Install do
       end
     end
 
-    # Update vite.config.mjs to add Svelte plugin and liveSveltePlugin.
+    # Update vite.config.mjs to add Svelte plugin and caravelaSveltePlugin.
     defp update_vite_configuration(igniter) do
       Igniter.update_file(igniter, "assets/vite.config.mjs", fn source ->
         Rewrite.Source.update(source, :content, fn content ->
@@ -257,19 +263,23 @@ defmodule Mix.Tasks.CaravelaSvelte.Install do
         String.replace(
           content,
           "import { phoenixVitePlugin } from 'phoenix_vite'",
-          ~s(import { svelte } from "@sveltejs/vite-plugin-svelte"\nimport liveSveltePlugin from "caravela_svelte/vitePlugin")
+          ~s(import { svelte } from "@sveltejs/vite-plugin-svelte"\nimport caravelaSveltePlugin from "@caravela/svelte/vitePlugin")
         )
       end
     end
 
     defp update_vite_optimized_deps(content) do
-      if String.contains?(content, "\"caravela_svelte\"") do
+      already_configured? =
+        String.contains?(content, "\"@caravela/svelte\"") or
+          String.contains?(content, "\"caravela_svelte\"")
+
+      if already_configured? do
         content
       else
         String.replace(
           content,
           ~s(include: ["phoenix", "phoenix_html", "phoenix_live_view"],),
-          ~s(include: ["caravela_svelte", "phoenix", "phoenix_html", "phoenix_live_view"],)
+          ~s(include: ["@caravela/svelte", "phoenix", "phoenix_html", "phoenix_live_view"],)
         )
       end
     end
@@ -281,7 +291,7 @@ defmodule Mix.Tasks.CaravelaSvelte.Install do
         String.replace(
           content,
           ~r/phoenixVitePlugin\(\{\s*pattern: \/\\.\(ex\|heex\)\$\/\s*\}\)/s,
-          "svelte({ compilerOptions: { css: \"injected\" } }),\n    liveSveltePlugin({ entrypoint: \"./js/server.js\" })"
+          "svelte({ compilerOptions: { css: \"injected\" } }),\n    caravelaSveltePlugin({ entrypoint: \"./js/server.js\" })"
         )
       end
     end
@@ -318,15 +328,22 @@ defmodule Mix.Tasks.CaravelaSvelte.Install do
     end
 
     defp add_svelte_dependency(content) do
-      if String.contains?(content, "\"caravela_svelte\"") do
+      already_declared? =
+        String.contains?(content, "\"@caravela/svelte\"") or
+          String.contains?(content, "\"caravela_svelte\"")
+
+      if already_declared? do
         content
       else
         # Capture the deps prefix (e.g. "file:../deps" or "file:./deps") from the phoenix entry
-        # to match whatever convention the existing package.json uses
+        # to match whatever convention the existing package.json uses. The
+        # npm name is scoped (`@caravela/svelte`) to match the package
+        # published to npm / referenced throughout the docs; the file path
+        # still points at the Mix-resolved `deps/caravela_svelte` directory.
         Regex.replace(
           ~r/"phoenix":\s*"(file:[^"]*deps)\/phoenix"/,
           content,
-          ~s("caravela_svelte": "\\1/caravela_svelte",\n    "phoenix": "\\1/phoenix"),
+          ~s("@caravela/svelte": "\\1/caravela_svelte",\n    "phoenix": "\\1/phoenix"),
           global: false
         )
       end
@@ -531,7 +548,7 @@ defmodule Mix.Tasks.CaravelaSvelte.Install do
 
     defp server_js_content do
       """
-      import { getRender } from "caravela_svelte"
+      import { getRender } from "@caravela/svelte"
       import Components from "virtual:live-svelte-components"
       export const render = getRender(Components)
       """

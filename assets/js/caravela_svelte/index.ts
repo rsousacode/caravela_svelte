@@ -20,6 +20,12 @@ export type { UploadEntry, UploadConfig, UploadOptions, UseLiveUploadReturn } fr
 export { useEventReply } from "./useEventReply";
 export type { UseEventReplyOptions, UseEventReplyReturn } from "./useEventReply";
 
-// --- Render-mode detection (Phase B.2) -------------------------------
+// --- Render-mode detection -------------------------------------------
 export { findModeRoot, readMode, MODE_ATTRIBUTE } from "./mode";
 export type { Mode } from "./mode";
+
+// --- JSON Patch ------------------------------------------------------
+// Re-exported so `:rest` SSE subscribers can apply broadcast_patch
+// ops to reactive page state without reaching into internal paths.
+// See `docs/rest.md#real-time-with-sse`.
+export { applyPatch } from "./jsonPatch.js";
