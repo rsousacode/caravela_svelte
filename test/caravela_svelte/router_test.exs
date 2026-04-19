@@ -41,6 +41,16 @@ defmodule CaravelaSvelte.RouterTest do
       only: [:index, :show]
     )
 
+    caravela_rest("/widgets", CaravelaSvelte.RouterTest.FakeController,
+      only: [:index],
+      realtime: true
+    )
+
+    caravela_rest("/metrics", CaravelaSvelte.RouterTest.FakeController,
+      only: [:index],
+      realtime: [heartbeat_ms: 45_000, topic_prefix: "metrics:"]
+    )
+
     caravela_live("/admin", CaravelaSvelte.RouterTest.FakeLive, :index,
       private: %{layout: :admin}
     )
@@ -107,6 +117,44 @@ defmodule CaravelaSvelte.RouterTest do
       conn = call(:get, "/library/authors")
       assert Plug.Conn.get_resp_header(conn, "x-cs-mode") == ["rest"]
       assert Plug.Conn.get_resp_header(conn, "x-cs-action") == ["index"]
+    end
+  end
+
+  describe "caravela_rest + realtime: true" do
+    test "registers a GET <path>/__events route dispatching to the SSE plug" do
+      events_route =
+        Enum.find(FakeRouter.__routes__(), &(&1.path == "/widgets/__events"))
+
+      assert events_route
+      assert events_route.verb == :get
+      assert events_route.plug == CaravelaSvelte.SSE
+      assert events_route.plug_opts == []
+    end
+
+    test "the resource routes still register alongside the SSE route" do
+      paths =
+        FakeRouter.__routes__()
+        |> Enum.map(& &1.path)
+        |> Enum.filter(&String.starts_with?(&1, "/widgets"))
+
+      assert "/widgets" in paths
+      assert "/widgets/__events" in paths
+    end
+
+    test "passes realtime keyword list through as plug opts" do
+      route =
+        Enum.find(FakeRouter.__routes__(), &(&1.path == "/metrics/__events"))
+
+      assert route
+      assert route.plug == CaravelaSvelte.SSE
+      assert route.plug_opts[:heartbeat_ms] == 45_000
+      assert route.plug_opts[:topic_prefix] == "metrics:"
+    end
+
+    test "realtime: false (default) does not register an SSE route" do
+      paths = Enum.map(FakeRouter.__routes__(), & &1.path)
+      refute "/library/books/__events" in paths
+      refute "/library/authors/__events" in paths
     end
   end
 end

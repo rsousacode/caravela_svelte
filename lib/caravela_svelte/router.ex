@@ -83,16 +83,65 @@ defmodule CaravelaSvelte.Router do
   All `resources/4` options are supported — `:only`, `:except`,
   `:as`, `:param`, `:singleton`. The `:private` map is merged,
   not overwritten.
+
+  ### `:realtime`
+
+  Pass `realtime: true` to register a Server-Sent Events endpoint
+  alongside the resource:
+
+      caravela_rest "/dashboard", DashboardController, realtime: true
+
+  This registers a `GET <path>/__events` route dispatching to
+  `CaravelaSvelte.SSE`. The client calls
+  `subscribe(topic, onPatch)` (from `@caravela/svelte/rest`) to
+  open an `EventSource` at that URL with a `topic=<name>` query
+  parameter, and the server publishes patches with
+  `CaravelaSvelte.SSE.publish(topic, ops)`.
+
+  Pass a keyword list instead of `true` to forward plug options
+  (`:heartbeat_ms`, `:retry_ms`, `:topic_prefix`, `:pubsub`) to
+  `CaravelaSvelte.SSE`:
+
+      caravela_rest "/dashboard", DashboardController,
+        realtime: [heartbeat_ms: 30_000, topic_prefix: "dashboard:"]
   """
   defmacro caravela_rest(path, controller, opts \\ []) do
+    {realtime, opts} = Keyword.pop(opts, :realtime, false)
     opts = merge_mode_private(opts, :rest)
+    sse_route = build_sse_route(path, realtime)
 
     quote do
       resources(unquote(path), unquote(controller), unquote(opts))
+      unquote(sse_route)
     end
   end
 
   # --- Helpers --------------------------------------------------------
+
+  # Build the AST for the SSE route that accompanies a :realtime
+  # caravela_rest declaration. Returns a no-op AST when realtime is
+  # disabled.
+  defp build_sse_route(_path, false), do: quote(do: :ok)
+
+  defp build_sse_route(path, true), do: build_sse_route(path, [])
+
+  defp build_sse_route(path, plug_opts) when is_list(plug_opts) do
+    events_path = events_path_ast(path)
+    private = {:%{}, [], [caravela_svelte_mode: :rest, caravela_svelte_role: :sse]}
+
+    quote do
+      get(unquote(events_path), CaravelaSvelte.SSE, unquote(plug_opts),
+        private: unquote(private)
+      )
+    end
+  end
+
+  # Concatenate the events suffix onto the resource path. Handles
+  # both compile-time string literals (common) and runtime AST
+  # expressions (rare — e.g. a module attribute).
+  defp events_path_ast(path) when is_binary(path), do: path <> "/__events"
+  defp events_path_ast(path_ast), do: quote(do: unquote(path_ast) <> "/__events")
+
 
   # Merges `private: %{caravela_svelte_mode: mode}` into the opts
   # keyword list without clobbering any existing `:private` entries.

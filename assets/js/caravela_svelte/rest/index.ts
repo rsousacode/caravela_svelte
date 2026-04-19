@@ -143,3 +143,5 @@ export { useNavigate } from "./useNavigate";
 export { useForm } from "./useForm";
 export type { UseFormOptions, UseFormReturn, FormErrors } from "./useForm";
 export { default as Link } from "./Link.svelte";
+export { subscribe, poll, appendTopic } from "./events";
+export type { SubscribeOptions, PatchOps } from "./events";
