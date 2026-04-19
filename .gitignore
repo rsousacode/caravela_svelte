@@ -1,0 +1,23 @@
+# Elixir
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+caravela_svelte-*.tar
+
+# Node / npm
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# macOS
+.DS_Store
+
+# Editors
+.elixir_ls/
+.lsp/
+.idea/
+.vscode/

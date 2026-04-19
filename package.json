@@ -1,0 +1,35 @@
+{
+    "name": "@caravela/svelte",
+    "version": "0.1.0",
+    "type": "module",
+    "description": "Svelte + Phoenix with pluggable render modes (LiveView WebSocket or Inertia-style HTTP).",
+    "license": "MIT",
+    "types": "./assets/js/caravela_svelte/types.d.ts",
+    "author": "Rui Sousa",
+    "scripts": {
+        "format": "npx prettier --write ."
+    },
+    "devDependencies": {
+        "prettier": "^3.8.1",
+        "prettier-plugin-svelte": "^3.5.1",
+        "svelte": "^5.53.7"
+    },
+    "exports": {
+        ".": {
+            "import": "./assets/js/caravela_svelte/index.ts",
+            "types": "./assets/js/caravela_svelte/types.d.ts"
+        },
+        "./vitePlugin": "./assets/js/caravela_svelte/vite_plugin.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/rsousacode/caravela_svelte.git"
+    },
+    "files": [
+        "README.md",
+        "LICENSE",
+        "NOTICE.md",
+        "package.json",
+        "assets/js/caravela_svelte/*"
+    ]
+}
