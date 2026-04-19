@@ -20,6 +20,8 @@ defmodule CaravelaSvelte.Live do
 
   @behaviour CaravelaSvelte.Renderer
 
+  import Phoenix.Component, only: [assign: 3]
+
   alias Phoenix.LiveView
   alias Phoenix.LiveView.LiveStream
   alias CaravelaSvelte.Slots
@@ -80,14 +82,14 @@ defmodule CaravelaSvelte.Live do
     streams_diff = calculate_streams_diff(assigns, init or dead)
 
     assigns
-    |> Map.put(:init, init)
-    |> Map.put(:slots, slots)
-    |> Map.put(:ssr_render, ssr_code)
-    |> Map.put(:svelte_id, svelte_id)
-    |> Map.put(:props_to_send, props_to_send)
-    |> Map.put(:use_diff, use_diff)
-    |> Map.put(:props_diff, props_diff)
-    |> Map.put(:streams_diff, streams_diff)
+    |> assign(:init, init)
+    |> assign(:slots, slots)
+    |> assign(:ssr_render, ssr_code)
+    |> assign(:svelte_id, svelte_id)
+    |> assign(:props_to_send, props_to_send)
+    |> assign(:use_diff, use_diff)
+    |> assign(:props_diff, props_diff)
+    |> assign(:streams_diff, streams_diff)
   end
 
   # --- Props payload -------------------------------------------------

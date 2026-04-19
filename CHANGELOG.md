@@ -4,6 +4,37 @@ All notable changes to this project are documented here. The
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] — 2026-04-19
+
+*Regression fix caught while bringing up `caravela_demo` against
+the 0.1.x line — props updates after mount never reached the
+browser. Single bug, single-file fix.*
+
+### Fixed
+
+- **Props updates past the first render silently dropped** —
+  `CaravelaSvelte.Live.prepare/1` attached every derived assign
+  (`:props_to_send`, `:props_diff`, `:use_diff`, `:slots`,
+  `:ssr_render`, `:svelte_id`, `:streams_diff`) with `Map.put/3`.
+  That bypassed Phoenix's change-tracking (`assigns.__changed__`),
+  so the HEEx template's `data-props={json(@props_to_send)}`
+  expression was flagged unchanged on every re-render and the
+  attribute was never patched into the DOM. The hook's
+  `updated()` callback therefore never saw new props, and any
+  server-side assigns change appeared to have no effect on the
+  client. Upstream `live_svelte` v0.18.0 used
+  `Phoenix.Component.assign/3` here, which updates both the
+  assigns map *and* `__changed__`; the Phase B.1 renderer split
+  (which moved `prepare/1` into a module that doesn't
+  `use Phoenix.Component`) quietly replaced those calls with
+  `Map.put/3`. Now restored via an explicit
+  `import Phoenix.Component, only: [assign: 3]` and an
+  `assign/3`-based pipeline in `prepare/1`.
+
+  Initial render was unaffected because `assigns.__changed__ == nil`
+  on mount causes Phoenix to treat every assign as changed,
+  masking the bug until the first update.
+
 ## [0.1.2] — 2026-04-19
 
 *Release-infrastructure pass. First push of `@caravela/svelte` to
