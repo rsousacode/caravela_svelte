@@ -19,3 +19,7 @@ export { useLiveUpload } from "./useLiveUpload";
 export type { UploadEntry, UploadConfig, UploadOptions, UseLiveUploadReturn } from "./useLiveUpload";
 export { useEventReply } from "./useEventReply";
 export type { UseEventReplyOptions, UseEventReplyReturn } from "./useEventReply";
+
+// --- Render-mode detection (Phase B.2) -------------------------------
+export { findModeRoot, readMode, MODE_ATTRIBUTE } from "./mode";
+export type { Mode } from "./mode";

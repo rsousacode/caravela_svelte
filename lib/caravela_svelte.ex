@@ -112,7 +112,7 @@ defmodule CaravelaSvelte do
   @doc """
   Deprecated — call `svelte/1` instead.
   """
-  def render(assigns) do
+  def render(assigns) when is_map(assigns) and not is_struct(assigns, Plug.Conn) do
     IO.warn(
       "`CaravelaSvelte.render/1` is deprecated; call `CaravelaSvelte.svelte/1` instead.",
       Macro.Env.stacktrace(__ENV__)
@@ -120,6 +120,20 @@ defmodule CaravelaSvelte do
 
     svelte(assigns)
   end
+
+  @doc """
+  Render a Svelte component as a REST (HTTP-transport) response.
+  Wraps `CaravelaSvelte.Rest.render/4`.
+
+  Controllers use this to serve Inertia-style pages:
+
+      def index(conn, _params) do
+        CaravelaSvelte.render(conn, "BookIndex", %{books: list_books()})
+      end
+
+  See `CaravelaSvelte.Rest` for options.
+  """
+  defdelegate render(conn, component, props, opts \\ []), to: CaravelaSvelte.Rest
 
   @reserved_prop_keys [:__changed__, :__given__, :svelte_opts, :ssr, :class, :socket]
 

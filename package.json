@@ -19,6 +19,9 @@
             "import": "./assets/js/caravela_svelte/index.ts",
             "types": "./assets/js/caravela_svelte/types.d.ts"
         },
+        "./rest": {
+            "import": "./assets/js/caravela_svelte/rest/index.ts"
+        },
         "./vitePlugin": "./assets/js/caravela_svelte/vite_plugin.js"
     },
     "repository": {
