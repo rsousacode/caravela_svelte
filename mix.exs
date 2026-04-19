@@ -29,8 +29,16 @@ defmodule CaravelaSvelte.MixProject do
         main: "readme",
         extras: [
           "README.md": [title: "CaravelaSvelte"],
+          "docs/render_modes.md": [title: "Render modes"],
+          "docs/getting_started.md": [title: "Getting started"],
+          "docs/live.md": [title: ":live mode"],
+          "docs/rest.md": [title: ":rest mode"],
+          "docs/caravela.md": [title: "Caravela integration"],
           "NOTICE.md": [title: "Notice"],
           "UPSTREAM.md": [title: "Upstream Sync"]
+        ],
+        groups_for_extras: [
+          Guides: ~r/docs\/.+/
         ]
       ]
     ]
@@ -45,7 +53,7 @@ defmodule CaravelaSvelte.MixProject do
         "Upstream (live_svelte)" => "https://github.com/woutdp/live_svelte"
       },
       files:
-        ~w(assets/js assets/copy lib mix.exs package.json .formatter.exs LICENSE NOTICE.md UPSTREAM.md README.md CHANGELOG.md)
+        ~w(assets/js assets/copy lib docs mix.exs package.json .formatter.exs LICENSE NOTICE.md UPSTREAM.md README.md CHANGELOG.md)
     ]
   end
 
